@@ -57,7 +57,20 @@ const routes = [
                 name: 'FeeManage',
                 component: () => import('@/views/admin/FeeManage.vue'),
                 meta: { title: '费用管理' }
-            }
+            },
+            {
+                path: 'building-house',
+                name: 'BuildingHouseManage',
+                component: () => import('@/views/admin/BuildingHouseManage.vue'),
+                meta: { title: '楼栋房屋管理' }
+            },
+            {
+                path: 'building-visual',
+                name: 'BuildingVisual',
+                component: () => import('@/views/admin/BuildingVisual.vue'),
+                meta: { title: '楼栋平面图' }
+            },
+
         ]
     }
 ]
