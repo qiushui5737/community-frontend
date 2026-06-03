@@ -20,13 +20,26 @@ const routes = [
         component: () => import('@/views/owner/Layout.vue'),
         meta: { requiresAuth: true },
         children: [
-            { path: '', redirect: '/owner/home' },
-            { path: 'home', component: () => import('@/views/owner/OwnerHome.vue'), meta: { title: '业主首页' } },
+            {   path: '',
+                redirect: '/owner/home'
+            },
+            {   path: 'home',
+                component: () => import('@/views/owner/OwnerHome.vue'),
+                meta: { title: '业主首页' }
+            },
             {
                 path: 'bills',
                 name: 'OwnerBills',
                 component: () => import('@/views/owner/OwnerBills.vue'),
                 meta: { title: '在线缴费' }
+            },
+            {   path: 'repairs',
+                component: () => import('@/views/owner/OwnerRepair.vue'),
+                meta: { title: '设施报修' }
+            },
+            { path: 'parking',
+                component: () => import('@/views/owner/OwnerParking.vue'),
+                meta: { title: '车位管理' }
             }
         ]
     },
@@ -69,6 +82,10 @@ const routes = [
                 name: 'BuildingVisual',
                 component: () => import('@/views/admin/BuildingVisual.vue'),
                 meta: { title: '楼栋平面图' }
+            },
+            {   path: 'repair',
+                component: () => import('@/views/admin/RepairManage.vue'),
+                meta: { title: '报修管理' }
             },
 
         ]

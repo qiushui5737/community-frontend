@@ -32,8 +32,9 @@
         </el-menu-item>
         <el-menu-item index="/owner/parking">
           <el-icon><Car /></el-icon>
-          <template #title>车位管理</template>
+          <span>车位管理</span>
         </el-menu-item>
+
         <el-menu-item index="/owner/announcements">
           <el-icon><Bell /></el-icon>
           <template #title>社区公告</template>
@@ -78,7 +79,7 @@
         </div>
       </el-header>
       <el-main class="main-content">
-        <router-view v-slot="{ Component }">
+        <router-view v-slot="{ Component }" :key="$route.path">
           <transition name="fade" mode="out-in">
             <component :is="Component" />
           </transition>

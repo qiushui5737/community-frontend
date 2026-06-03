@@ -38,6 +38,7 @@
           <el-icon><Money /></el-icon>
           <template #title>费用管理</template>
         </el-menu-item>
+        <el-menu-item index="/admin/repair"><el-icon><Tools /></el-icon><span>报修管理</span></el-menu-item>
       </el-menu>
       <div class="sidebar-footer" v-show="!isCollapse">
         <div class="user-info">
@@ -81,7 +82,7 @@
         </div>
       </el-header>
       <el-main class="main-content">
-        <router-view v-slot="{ Component }">
+        <router-view v-slot="{ Component }" :key="$route.path">
           <transition name="fade" mode="out-in">
             <component :is="Component" />
           </transition>
