@@ -71,7 +71,10 @@
 
       <!-- 账单表格 -->
       <el-table :data="bills" v-loading="loading" stripe class="bills-table">
-        <el-table-column prop="id" label="账单编号" width="100" align="center" />
+        <el-table-column prop="billNo" label="账单编号" width="170" align="center" />
+        <el-table-column label="关联对象" width="160" align="center">
+          <template #default="{row}">{{ row.parkingLabel || row.houseLabel || '—' }}</template>
+        </el-table-column>
         <el-table-column label="费用类型" width="150">
           <template #default="{row}">
             <el-tag effect="light" size="small">{{ getFeeTypeName(row.feeItemId) }}</el-tag>
@@ -185,28 +188,39 @@ onMounted(() => {
     .header-left {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
 
       .header-icon {
-        width: 40px;
-        height: 40px;
+        width: 48px;
+        height: 48px;
         background: linear-gradient(135deg, #f59e0b, #d97706);
-        border-radius: 12px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
       }
 
-      .header-title { font-size: 16px; font-weight: 700; color: $text-primary; }
-      .header-desc { font-size: 12px; color: $text-secondary; margin-top: 2px; }
+      .header-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: $text-primary;
+        letter-spacing: -0.01em;
+      }
+
+      .header-desc {
+        font-size: 13px;
+        color: $text-secondary;
+        margin-top: 2px;
+      }
     }
 
     .user-tag {
       display: flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 12px;
+      padding: 6px 14px;
       font-weight: 500;
     }
   }
@@ -216,23 +230,25 @@ onMounted(() => {
 
     .bill-stat-card {
       border-radius: 16px;
-      padding: 20px;
+      padding: 22px;
       display: flex;
       align-items: center;
       gap: 14px;
       border: 1px solid $border-color;
       background: white;
-      transition: all 0.3s ease;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
 
       &:hover {
-        box-shadow: $shadow-md;
-        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        transform: translateY(-4px);
       }
 
       .stat-icon-bg {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -248,13 +264,16 @@ onMounted(() => {
         .stat-label {
           font-size: 12px;
           color: $text-secondary;
+          font-weight: 500;
         }
 
         .stat-value {
-          font-size: 20px;
+          font-size: 26px;
           font-weight: 700;
           color: $text-primary;
           margin-top: 2px;
+          letter-spacing: -0.02em;
+          line-height: 1.2;
         }
       }
     }
@@ -266,14 +285,18 @@ onMounted(() => {
 
   .bills-table {
     .bill-amount {
-      font-weight: 600;
+      font-weight: 700;
+      font-size: 15px;
       color: $text-primary;
     }
   }
 
   .pay-btn {
-    font-weight: 500;
-    .el-icon { margin-right: 2px; }
+    font-weight: 600;
+    padding: 8px 20px !important;
+    height: 34px;
+
+    .el-icon { margin-right: 4px; }
   }
 
   .text-gray { color: $text-tertiary; font-size: 12px; }

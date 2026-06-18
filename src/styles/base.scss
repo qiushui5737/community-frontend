@@ -178,8 +178,8 @@ body {
   }
 }
 
-// 菜单美化
-.el-menu {
+// 菜单美化（仅垂直菜单，水平菜单由各 Layout 自行处理）
+.el-menu:not(.el-menu--horizontal) {
   border-right: none !important;
 
   .el-menu-item {

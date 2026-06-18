@@ -40,6 +40,33 @@ const routes = [
             { path: 'parking',
                 component: () => import('@/views/owner/OwnerParking.vue'),
                 meta: { title: '车位管理' }
+            },
+            {
+                path: 'announcements',
+                name: 'OwnerAnnouncement',
+                component: () => import('@/views/owner/OwnerAnnouncement.vue'),
+                meta: { title: '社区公告' }
+            },
+
+            {
+                path: 'facility',
+                component: () => import('@/views/owner/OwnerFacility.vue'),
+                meta: { title: '设施借用' }
+            },
+            {
+                path: 'feedback',
+                component: () => import('@/views/owner/OwnerFeedback.vue'),
+                meta: { title: '留言反馈' }
+            },
+            {
+                path: 'access-card',
+                component: () => import('@/views/owner/OwnerAccessCard.vue'),
+                meta: { title: '门禁卡' }
+            },
+            {
+                path: 'profile',
+                component: () => import('@/views/owner/OwnerProfile.vue'),
+                meta: { title: '个人中心' }
             }
         ]
     },
@@ -87,7 +114,41 @@ const routes = [
                 component: () => import('@/views/admin/RepairManage.vue'),
                 meta: { title: '报修管理' }
             },
-
+            {
+                path: 'parking',
+                name: 'AdminParkingManage',
+                component: () => import('@/views/admin/AdminParkingManage.vue'),
+                meta: { title: '车位管理' }
+            },
+            {
+                path: 'announcement',
+                name: 'AnnouncementManage',
+                component: () => import('@/views/admin/AnnouncementManage.vue'),
+                meta: { title: '公告管理' }
+            },
+            {
+                path: 'facility',
+                component: () => import('@/views/admin/AdminFacilityManage.vue'),
+                meta: { title: '设施借用管理' }
+            },
+            {
+                path: 'feedback',
+                name: 'FeedbackManage',
+                component: () => import('@/views/admin/AdminFeedbackManage.vue'),
+                meta: { title: '留言反馈管理' }
+            },
+            {
+                path: 'access-card',
+                name: 'AccessCardManage',
+                component: () => import('@/views/admin/AdminAccessCardManage.vue'),
+                meta: { title: '门禁卡管理' }
+            },
+            {
+                path: 'access-log',
+                name: 'AccessLog',
+                component: () => import('@/views/admin/AdminAccessLog.vue'),
+                meta: { title: '进出记录追踪' }
+            }
         ]
     }
 ]

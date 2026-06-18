@@ -1,6 +1,20 @@
 <template>
-  <el-card shadow="never">
-    <el-tabs v-model="activeTab" @tab-click="loadData">
+  <div class="owner-repair">
+    <el-card shadow="never">
+      <template #header>
+        <div class="repair-card-header">
+          <div class="header-left">
+            <div class="header-icon">
+              <el-icon :size="20"><Tools /></el-icon>
+            </div>
+            <div>
+              <div class="header-title">设施报修</div>
+              <div class="header-desc">提交报修申请，物业将尽快处理</div>
+            </div>
+          </div>
+        </div>
+      </template>
+      <el-tabs v-model="activeTab" @tab-click="loadData">
       <el-tab-pane label="提交报修" name="submit">
         <el-form :model="submitForm" label-width="100px" style="max-width: 500px">
           <el-form-item label="报修类型" required>
@@ -41,7 +55,7 @@
 
       <el-tab-pane label="我的报修记录" name="records">
         <el-table :data="list" v-loading="loading" stripe border>
-          <el-table-column prop="id" label="工单号" width="80" align="center" />
+          <el-table-column prop="repairNo" label="报修单号" width="170" align="center" />
           <el-table-column prop="category" label="类型" width="90" align="center" />
           <el-table-column prop="title" label="标题" min-width="150" />
           <el-table-column prop="status" label="状态" width="90" align="center">
@@ -55,14 +69,15 @@
         </div>
       </el-tab-pane>
     </el-tabs>
-  </el-card>
+    </el-card>
+  </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import request from '@/utils/request'
 import { ElMessage } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { Plus, Tools } from '@element-plus/icons-vue'
 
 const activeTab = ref('submit')
 const statusMap = { PENDING:{text:'待处理',type:'warning'}, PROCESSING:{text:'处理中',type:'primary'}, COMPLETED:{text:'已完成',type:'success'}, REJECTED:{text:'已驳回',type:'danger'} }
@@ -145,10 +160,72 @@ const handleUploadRemove = () => {
 }
 
 </script>
-<style scoped>
-.mt-4 { margin-top:16px }
-.flex-end { display:flex; justify-content:flex-end }
-.repair-upload :deep(.el-upload--picture-card) {
-  width: 120px; height: 120px; line-height: 120px;
+<style scoped lang="scss">
+@use '@/styles/variables.scss' as *;
+
+.owner-repair {
+  .repair-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+
+      .header-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+      }
+
+      .header-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: $text-primary;
+        letter-spacing: -0.01em;
+      }
+
+      .header-desc {
+        font-size: 13px;
+        color: $text-secondary;
+        margin-top: 2px;
+      }
+    }
+  }
+
+  :deep(.el-form) {
+    max-width: 540px;
+    padding: 8px 0;
+
+    .el-form-item__label {
+      font-weight: 600;
+    }
+  }
+
+  .repair-upload {
+    :deep(.el-upload--picture-card) {
+      width: 120px;
+      height: 120px;
+      line-height: 120px;
+      border-radius: 12px;
+      border: 2px dashed $border-color;
+      transition: border-color 0.2s;
+
+      &:hover {
+        border-color: $primary;
+      }
+    }
+  }
+
+  .mt-4 { margin-top: 16px; }
+  .flex-end { display: flex; justify-content: flex-end; }
 }
 </style>

@@ -64,7 +64,10 @@
             <el-button type="warning" @click="generateDialogVisible = true" class="generate-btn"><el-icon><Document /></el-icon>批量生成账单</el-button>
           </div>
           <el-table :data="billList" v-loading="billLoading" stripe row-key="id">
-            <el-table-column prop="id" label="账单编号" width="90" align="center" />
+            <el-table-column prop="billNo" label="账单编号" width="170" align="center" />
+            <el-table-column label="关联对象" width="160" align="center">
+              <template #default="{row}">{{ row.parkingLabel || row.houseLabel || '—' }}</template>
+            </el-table-column>
             <el-table-column label="业主姓名" width="110" align="center">
               <template #default="{row}">{{ ownerNames[row.ownerId] || `ID:${row.ownerId}` }}</template>
             </el-table-column>
@@ -112,14 +115,30 @@
     </el-dialog>
 
     <!-- 生成账单弹窗 -->
-    <el-dialog v-model="generateDialogVisible" title="批量生成账单" width="400px" class="dialog">
+    <el-dialog v-model="generateDialogVisible" title="批量生成账单" width="620px" class="dialog" @open="loadEligibleHouses">
       <el-form>
         <el-form-item label="选择项目">
-          <el-select v-model="generateFeeId" style="width: 100%">
+          <el-select v-model="generateFeeId" style="width: 100%" @change="onFeeItemChange">
             <el-option v-for="item in allFeeItems" :key="item.id" :label="`${item.itemName} (¥${item.amount})`" :value="item.id" />
           </el-select>
         </el-form-item>
-        <el-alert title="将为所有启用状态的业主生成该项目的待缴账单" type="info" :closable="false" show-icon />
+        <el-form-item label="截止日期">
+          <el-date-picker v-model="generateDueDate" type="date" placeholder="选择截止日期" value-format="YYYY-MM-DD" style="width: 100%" />
+        </el-form-item>
+        <el-form-item label="缴费对象">
+          <div class="house-select-area">
+            <div class="house-select-header">
+              <el-checkbox v-model="houseAllChecked" @change="toggleAllHouses" :indeterminate="houseIndeterminate">全选</el-checkbox>
+              <span class="house-count">已选 {{ selectedHouseIds.length }} / {{ eligibleHouses.length }} {{ eligibleType === 'parking' ? '个车位' : '套房屋' }}</span>
+            </div>
+            <el-table :data="eligibleHouses" size="small" max-height="240" @selection-change="onHouseSelectionChange" ref="houseTableRef" row-key="id" stripe>
+              <el-table-column type="selection" width="42" />
+              <el-table-column prop="label" :label="eligibleType === 'parking' ? '车位编号' : '房屋位置'" />
+              <el-table-column prop="ownerName" label="业主姓名" width="110" align="center" />
+            </el-table>
+          </div>
+        </el-form-item>
+        <el-alert :title="eligibleType === 'parking' ? '仅为勾选的车位生成车位管理费账单' : '仅为勾选的房屋生成该项目的待缴账单'" type="info" :closable="false" show-icon />
       </el-form>
       <template #footer><el-button @click="generateDialogVisible=false">取消</el-button><el-button type="warning" @click="handleGenerate">确认生成</el-button></template>
     </el-dialog>
@@ -127,7 +146,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue'
+import { ref, onMounted, reactive, computed, nextTick } from 'vue'
 import request from '@/utils/request'
 import { ElMessage } from 'element-plus'
 import { Money, Search, Plus, Edit, Delete, Document } from '@element-plus/icons-vue'
@@ -171,6 +190,56 @@ const ownerNames = ref({})
 const feeItemNames = ref({})
 const generateDialogVisible = ref(false)
 const generateFeeId = ref(null)
+const generateDueDate = ref('')
+const eligibleHouses = ref([])
+const selectedHouseIds = ref([])
+const houseTableRef = ref(null)
+const eligibleType = ref('house')  // 'house' or 'parking'
+
+const houseAllChecked = ref(false)
+const houseIndeterminate = computed(() => selectedHouseIds.value.length > 0 && selectedHouseIds.value.length < eligibleHouses.value.length)
+
+const loadEligibleHouses = async (feeItemId = null) => {
+  const params = feeItemId ? { feeItemId } : {}
+  const res = await request.get('/admin/bills/eligible-houses', { params })
+  eligibleHouses.value = res.data || []
+  // Determine type from first item
+  eligibleType.value = eligibleHouses.value.length > 0 ? (eligibleHouses.value[0].type || 'house') : 'house'
+  selectedHouseIds.value = []
+  houseAllChecked.value = false
+  // 等待表格渲染后默认全选
+  await nextTick()
+  if (houseTableRef.value && eligibleHouses.value.length > 0) {
+    houseTableRef.value.toggleAllSelection()
+  }
+}
+
+const onHouseSelectionChange = (rows) => {
+  selectedHouseIds.value = rows.map(r => r.id)
+  houseAllChecked.value = rows.length === eligibleHouses.value.length && rows.length > 0
+}
+
+const toggleAllHouses = (val) => {
+  if (val) {
+    houseTableRef.value?.toggleAllSelection()
+  } else {
+    houseTableRef.value?.clearSelection()
+  }
+}
+
+const onFeeItemChange = (feeId) => {
+  const item = allFeeItems.value.find(i => i.id === feeId)
+  if (!item) return
+  const d = new Date()
+  const months = item.cycle === 'QUARTER' ? 3 : item.cycle === 'YEAR' ? 12 : 1
+  d.setMonth(d.getMonth() + months)
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  generateDueDate.value = `${yyyy}-${mm}-${dd}`
+  // 根据收费项目重新筛选可收费房屋（如车位费只展示有车位的业主）
+  loadEligibleHouses(feeId)
+}
 
 const loadBills = async () => {
   billLoading.value = true
@@ -193,7 +262,9 @@ const updateBillStatus = async (row) => {
 }
 const handleGenerate = async () => {
   if (!generateFeeId.value) return ElMessage.warning('请选择收费项目')
-  await request.post('/admin/bills/generate', null, { params: { feeItemId: generateFeeId.value } })
+  if (!generateDueDate.value) return ElMessage.warning('请选择截止日期')
+  if (selectedHouseIds.value.length === 0) return ElMessage.warning('请至少选择一个缴费对象')
+  await request.post('/admin/bills/generate', null, { params: { feeItemId: generateFeeId.value, dueDate: generateDueDate.value, targetIds: selectedHouseIds.value.join(','), targetType: eligibleType.value } })
   ElMessage.success('账单生成成功')
   generateDialogVisible.value = false
   loadBills()
@@ -250,6 +321,25 @@ onMounted(() => { loadItems(); loadAllFeeItems() })
   .generate-btn {
     background: linear-gradient(135deg, #f59e0b, #d97706) !important;
     border: none !important;
+  }
+
+  .house-select-area {
+    width: 100%;
+    border: 1px solid $border-color;
+    border-radius: 8px;
+    padding: 10px;
+
+    .house-select-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+
+      .house-count {
+        font-size: 12px;
+        color: $text-secondary;
+      }
+    }
   }
 }
 </style>

@@ -72,13 +72,15 @@
 
         <el-tab-pane label="房屋管理" name="houses">
           <div class="toolbar">
+            <el-input v-model="houseKeyword" placeholder="搜索房间号" clearable @clear="loadHouses" @keyup.enter="loadHouses" style="width: 160px">
+              <template #prefix><el-icon><Search /></el-icon></template>
+            </el-input>
             <el-select v-model="unitFilter" placeholder="选择单元" clearable style="width: 180px">
               <el-option v-for="u in unitList" :key="u.id" :label="`${getBuildingName(u.buildingId)}-${u.unitNo}`" :value="u.id" />
             </el-select>
             <el-select v-model="statusFilter" placeholder="房屋状态" clearable style="width: 120px">
               <el-option label="空置" value="VACANT" />
               <el-option label="已入住" value="OCCUPIED" />
-              <el-option label="已出租" value="RENTED" />
             </el-select>
             <el-button type="primary" @click="loadHouses"><el-icon><Search /></el-icon>查询</el-button>
             <el-button type="success" @click="openHouseDialog()"><el-icon><Plus /></el-icon>新增房屋</el-button>
@@ -93,6 +95,9 @@
               <template #default="{row}">
                 <el-tag :type="statusMap[row.status]?.type" effect="light">{{ statusMap[row.status]?.text }}</el-tag>
               </template>
+            </el-table-column>
+            <el-table-column label="业主ID" width="90" align="center">
+              <template #default="{row}">{{ row.ownerId || '—' }}</template>
             </el-table-column>
             <el-table-column label="所属单元" width="150">
               <template #default="{row}">{{ getUnitLabel(row.unitId) }}</template>
@@ -148,11 +153,45 @@
           <el-select v-model="houseForm.status" style="width: 100%">
             <el-option label="空置" value="VACANT" />
             <el-option label="已入住" value="OCCUPIED" />
-            <el-option label="已出租" value="RENTED" />
           </el-select>
         </el-form-item>
+
+        <!-- 空置 → 办理入住 -->
+        <template v-if="houseForm.status === 'VACANT' && houseForm.id">
+          <el-divider />
+          <el-form-item label="办理入住">
+            <el-input v-model.number="checkinOwnerId" placeholder="输入业主ID" clearable>
+              <template #prepend>业主ID</template>
+            </el-input>
+          </el-form-item>
+          <div class="action-row">
+            <el-button type="primary" :loading="checkinLoading" :disabled="!checkinOwnerId" @click="doHouseCheckin">
+              <el-icon><Check /></el-icon>确认入住
+            </el-button>
+          </div>
+        </template>
+
+        <!-- 已入住 → 办理退房 -->
+        <template v-if="houseForm.status === 'OCCUPIED' && houseForm.id">
+          <el-divider />
+          <div class="checkout-section">
+            <div class="checkout-info">当前业主ID：<strong>{{ houseForm.ownerId || '—' }}</strong></div>
+            <div class="action-row">
+              <el-popconfirm title="确认办理退房？将清空业主绑定并设为空置" @confirm="doHouseCheckout">
+                <template #reference>
+                  <el-button type="danger" :loading="checkoutLoading">
+                    <el-icon><CircleClose /></el-icon>办理退房
+                  </el-button>
+                </template>
+              </el-popconfirm>
+            </div>
+          </div>
+        </template>
       </el-form>
-      <template #footer><el-button @click="houseDialogVisible=false">取消</el-button><el-button type="primary" @click="saveHouse">保存</el-button></template>
+      <template #footer>
+        <el-button @click="houseDialogVisible=false">取消</el-button>
+        <el-button type="primary" @click="saveHouse">保存</el-button>
+      </template>
     </el-dialog>
   </div>
 </template>
@@ -160,9 +199,10 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import request from '@/utils/request'
-import { OfficeBuilding, Search, Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { OfficeBuilding, Search, Plus, Edit, Delete, Check, CircleClose } from '@element-plus/icons-vue'
 
-const statusMap = { VACANT: { text: '空置', type: 'info' }, OCCUPIED: { text: '已入住', type: 'success' }, RENTED: { text: '已出租', type: 'warning' } }
+const statusMap = { VACANT: { text: '空置', type: 'info' }, OCCUPIED: { text: '已入住', type: 'success' } }
 const buildingKeyword = ref('')
 const buildingList = ref([])
 const buildingLoading = ref(false)
@@ -218,24 +258,30 @@ const deleteUnit = async (id) => { await request.delete(`/units/${id}`); loadUni
 
 const unitFilter = ref(null)
 const statusFilter = ref(null)
+const houseKeyword = ref('')
 const houseList = ref([])
 const houseLoading = ref(false)
 const housePage = reactive({ current: 1, size: 10, total: 0 })
 const houseDialogVisible = ref(false)
-const houseForm = ref({ id: null, unitId: null, roomNo: '', area: 0, status: 'VACANT' })
+const houseForm = ref({ id: null, unitId: null, roomNo: '', area: 0, status: 'VACANT', ownerId: null })
+const checkinOwnerId = ref(null)
+const checkinLoading = ref(false)
+const checkoutLoading = ref(false)
 
 const loadHouses = async () => {
   houseLoading.value = true
   const params = { ...housePage }
   if (unitFilter.value) params.unitId = unitFilter.value
   if (statusFilter.value) params.status = statusFilter.value
+  if (houseKeyword.value) params.keyword = houseKeyword.value
   const res = await request.get('/houses/page', { params })
   houseList.value = res.data.records
   housePage.total = res.data.total
   houseLoading.value = false
 }
 const openHouseDialog = (row = null) => {
-  houseForm.value = row ? { ...row } : { id: null, unitId: unitFilter.value || null, roomNo: '', area: 0, status: 'VACANT' }
+  houseForm.value = row ? { ...row } : { id: null, unitId: unitFilter.value || null, roomNo: '', area: 0, status: 'VACANT', ownerId: null }
+  checkinOwnerId.value = null
   houseDialogVisible.value = true
 }
 const saveHouse = async () => {
@@ -244,6 +290,31 @@ const saveHouse = async () => {
   houseDialogVisible.value = false; loadHouses()
 }
 const deleteHouse = async (id) => { await request.delete(`/houses/${id}`); loadHouses() }
+
+const doHouseCheckin = async () => {
+  if (!checkinOwnerId.value) { ElMessage.warning('请输入业主ID'); return }
+  checkinLoading.value = true
+  try {
+    await request.post('/houses/checkin', null, { params: { houseId: houseForm.value.id, ownerId: checkinOwnerId.value } })
+    ElMessage.success('入住办理成功')
+    houseDialogVisible.value = false
+    loadHouses()
+  } catch (e) {
+    ElMessage.error(e.response?.data?.msg || '办理失败')
+  } finally { checkinLoading.value = false }
+}
+
+const doHouseCheckout = async () => {
+  checkoutLoading.value = true
+  try {
+    await request.post('/houses/checkout', null, { params: { houseId: houseForm.value.id } })
+    ElMessage.success('退房办理成功')
+    houseDialogVisible.value = false
+    loadHouses()
+  } catch (e) {
+    ElMessage.error('退房失败')
+  } finally { checkoutLoading.value = false }
+}
 
 const getBuildingName = (id) => { const b = buildingList.value.find(b => b.id === id); return b ? `${b.buildingNo}-${b.name}` : '-' }
 const getUnitLabel = (id) => { const u = unitList.value.find(u => u.id === id); return u ? `${getBuildingName(u.buildingId)}-${u.unitNo}` : '-' }
@@ -285,5 +356,12 @@ onMounted(() => { loadBuildings(); loadUnits(); loadHouses() })
   .toolbar { margin-bottom: 16px; display: flex; gap: 10px; align-items: center; }
   .mt-4 { margin-top: 16px; }
   .op-btn { font-weight: 500; .el-icon { margin-right: 2px; } }
+  .form-hint { font-size: 12px; color: $text-secondary; margin-top: 4px; line-height: 1.4; }
+  .action-row { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+  .checkout-section {
+    .checkout-info { font-size: 14px; color: $text-secondary; margin-bottom: 12px;
+      strong { color: $text-primary; font-weight: 700; }
+    }
+  }
 }
 </style>

@@ -1,91 +1,106 @@
 <template>
-  <el-container class="owner-layout">
-    <el-aside :width="isCollapse ? '64px' : '220px'" class="sidebar">
-      <div class="sidebar-header">
-        <div class="sidebar-logo" v-show="!isCollapse">
-          <el-icon :size="24"><HomeFilled /></el-icon>
-          <span class="logo-text">业主服务中心</span>
-        </div>
-        <el-icon :size="20" class="collapse-btn" @click="isCollapse = !isCollapse">
-          <DArrowLeft v-if="!isCollapse" />
-          <DArrowRight v-else />
-        </el-icon>
-      </div>
-      <el-menu
-        router
-        :collapse="isCollapse"
-        :collapse-transition="false"
-        :default-active="$route.path"
-        class="sidebar-menu"
-      >
-        <el-menu-item index="/owner/home">
-          <el-icon><HomeFilled /></el-icon>
-          <template #title>首页</template>
-        </el-menu-item>
-        <el-menu-item index="/owner/bills">
-          <el-icon><Money /></el-icon>
-          <template #title>在线缴费</template>
-        </el-menu-item>
-        <el-menu-item index="/owner/repairs">
-          <el-icon><Tools /></el-icon>
-          <template #title>设施报修</template>
-        </el-menu-item>
-        <el-menu-item index="/owner/parking">
-          <el-icon><Car /></el-icon>
-          <span>车位管理</span>
-        </el-menu-item>
-
-        <el-menu-item index="/owner/announcements">
-          <el-icon><Bell /></el-icon>
-          <template #title>社区公告</template>
-        </el-menu-item>
-      </el-menu>
-      <div class="sidebar-footer" v-show="!isCollapse">
-        <div class="user-info">
-          <el-avatar :size="32" class="user-avatar">
-            <el-icon><User /></el-icon>
-          </el-avatar>
-          <div class="user-detail">
-            <div class="user-name">{{ userInfo?.realName || '业主' }}</div>
-            <div class="user-role">业主</div>
+  <el-container class="owner-layout" direction="vertical">
+    <!-- 顶部导航栏 -->
+    <header class="top-nav">
+      <div class="nav-left">
+        <div class="brand">
+          <div class="brand-icon">
+            <el-icon :size="18"><HomeFilled /></el-icon>
           </div>
+          <span class="brand-text">业主服务</span>
         </div>
       </div>
-    </el-aside>
-    <el-container class="main-wrapper">
-      <el-header class="top-header">
-        <div class="breadcrumb">
-          <span class="page-title">{{ currentPageTitle }}</span>
-        </div>
-        <div class="header-actions">
-          <el-badge :value="2" class="action-item">
-            <el-icon :size="20"><Bell /></el-icon>
-          </el-badge>
-          <el-dropdown @command="handleCommand">
-            <span class="user-dropdown">
-              <el-avatar :size="28" class="header-avatar">
-                <el-icon><User /></el-icon>
-              </el-avatar>
-              <span class="header-username">{{ userInfo?.realName || '业主' }}</span>
-              <el-icon><ArrowDownBold /></el-icon>
-            </span>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="profile">个人中心</el-dropdown-item>
-                <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
-              </el-dropdown-menu>
+
+      <nav class="nav-center">
+        <el-menu
+          mode="horizontal"
+          router
+          :default-active="$route.path"
+          class="nav-menu"
+          :ellipsis="false"
+        >
+          <el-menu-item index="/owner/home">
+            <el-icon><HomeFilled /></el-icon>
+            <span>首页</span>
+          </el-menu-item>
+
+          <el-sub-menu index="group-life">
+            <template #title>
+              <el-icon><ShoppingCart /></el-icon>
+              <span>生活服务</span>
             </template>
-          </el-dropdown>
-        </div>
-      </el-header>
-      <el-main class="main-content">
-        <router-view v-slot="{ Component }" :key="$route.path">
-          <transition name="fade" mode="out-in">
-            <component :is="Component" />
-          </transition>
-        </router-view>
-      </el-main>
-    </el-container>
+            <el-menu-item index="/owner/bills">
+              <el-icon><Money /></el-icon>在线缴费
+            </el-menu-item>
+            <el-menu-item index="/owner/repairs">
+              <el-icon><Tools /></el-icon>设施报修
+            </el-menu-item>
+            <el-menu-item index="/owner/parking">
+              <el-icon><Van /></el-icon>车位管理
+            </el-menu-item>
+          </el-sub-menu>
+
+          <el-sub-menu index="group-community">
+            <template #title>
+              <el-icon><Bell /></el-icon>
+              <span>社区互动</span>
+            </template>
+            <el-menu-item index="/owner/announcements">
+              <el-icon><Bell /></el-icon>社区公告
+            </el-menu-item>
+
+            <el-menu-item index="/owner/facility">
+              <el-icon><Suitcase /></el-icon>设施借用
+            </el-menu-item>
+            <el-menu-item index="/owner/feedback">
+              <el-icon><ChatDotRound /></el-icon>留言反馈
+            </el-menu-item>
+          </el-sub-menu>
+
+          <el-menu-item index="/owner/access-card">
+            <el-icon><Key /></el-icon>
+            <span>门禁卡</span>
+          </el-menu-item>
+        </el-menu>
+      </nav>
+
+      <div class="nav-right">
+        <el-badge :value="2" class="nav-action">
+          <el-icon :size="18"><Bell /></el-icon>
+        </el-badge>
+        <el-dropdown @command="handleCommand" trigger="click">
+          <span class="user-trigger">
+            <el-avatar :size="30" class="nav-avatar">
+              <el-icon><User /></el-icon>
+            </el-avatar>
+            <span class="nav-username">{{ userInfo?.realName || '业主' }}</span>
+            <el-icon class="arrow-icon"><ArrowDownBold /></el-icon>
+          </span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="profile">个人中心</el-dropdown-item>
+              <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
+    </header>
+
+    <!-- 页面标题栏 -->
+    <div class="page-bar">
+      <span class="page-group" v-if="currentGroup">{{ currentGroup }}</span>
+      <span class="page-sep" v-if="currentGroup">/</span>
+      <h1 class="page-title">{{ currentPageTitle }}</h1>
+    </div>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+      <router-view v-slot="{ Component }" :key="$route.path">
+        <transition name="fade" mode="out-in">
+          <component :is="Component" />
+        </transition>
+      </router-view>
+    </main>
   </el-container>
 </template>
 
@@ -95,12 +110,25 @@ import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
 const route = useRoute()
-const isCollapse = ref(false)
 const userInfo = ref(null)
 
 onMounted(() => {
   userInfo.value = JSON.parse(sessionStorage.getItem('userInfo') || '{}')
 })
+
+const groupMap = {
+  '/owner/home': '',
+  '/owner/bills': '生活服务',
+  '/owner/repairs': '生活服务',
+  '/owner/parking': '生活服务',
+  '/owner/announcements': '社区互动',
+  '/owner/facility': '社区互动',
+  '/owner/feedback': '社区互动',
+  '/owner/access-card': '',
+  '/owner/profile': ''
+}
+
+const currentGroup = computed(() => groupMap[route.path] || '')
 
 const currentPageTitle = computed(() => {
   const titles = {
@@ -108,7 +136,11 @@ const currentPageTitle = computed(() => {
     '/owner/bills': '在线缴费',
     '/owner/repairs': '设施报修',
     '/owner/parking': '车位管理',
-    '/owner/announcements': '社区公告'
+    '/owner/announcements': '社区公告',
+    '/owner/facility': '设施借用',
+    '/owner/feedback': '留言反馈',
+    '/owner/access-card': '门禁卡',
+    '/owner/profile': '个人中心'
   }
   return titles[route.path] || '业主服务中心'
 })
@@ -117,6 +149,8 @@ const handleCommand = (cmd) => {
   if (cmd === 'logout') {
     sessionStorage.clear()
     router.push('/login')
+  } else if (cmd === 'profile') {
+    router.push('/owner/profile')
   }
 }
 </script>
@@ -124,192 +158,238 @@ const handleCommand = (cmd) => {
 <style scoped lang="scss">
 @use '@/styles/variables.scss' as *;
 
-.owner-layout { height: 100vh; }
+$owner-primary: #0d9488;
+$owner-light: #14b8a6;
+$owner-50: #f0fdfa;
 
-.sidebar {
-  background: linear-gradient(180deg, #0f766e 0%, #115e59 100%);
-  display: flex;
-  flex-direction: column;
-  transition: width 0.3s ease;
-  position: relative;
-  z-index: 10;
-
-  .sidebar-header {
-    height: 64px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-
-    .sidebar-logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: white;
-      font-weight: 700;
-      font-size: 16px;
-
-      .logo-text {
-        white-space: nowrap;
-      }
-    }
-
-    .collapse-btn {
-      color: rgba(255, 255, 255, 0.6);
-      cursor: pointer;
-      transition: color 0.2s;
-      padding: 4px;
-      border-radius: 6px;
-
-      &:hover {
-        color: white;
-        background: rgba(255, 255, 255, 0.1);
-      }
-    }
-  }
-
-  .sidebar-menu {
-    flex: 1;
-    background: transparent !important;
-    border-right: none;
-    padding: 12px 0;
-
-    :deep(.el-menu-item) {
-      color: rgba(255, 255, 255, 0.7) !important;
-      margin: 4px 12px;
-      border-radius: 10px;
-      height: 44px;
-      line-height: 44px;
-      transition: all 0.2s ease;
-
-      &:hover {
-        background: rgba(255, 255, 255, 0.08) !important;
-        color: white !important;
-      }
-
-      &.is-active {
-        background: rgba(255, 255, 255, 0.15) !important;
-        color: white !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        font-weight: 600;
-      }
-
-      .el-icon {
-        font-size: 18px;
-        margin-right: 8px;
-      }
-    }
-  }
-
-  .sidebar-footer {
-    padding: 16px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-
-    .user-info {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-
-      .user-avatar {
-        background: linear-gradient(135deg, #14b8a6, #0d9488);
-        color: white;
-        flex-shrink: 0;
-      }
-
-      .user-detail {
-        overflow: hidden;
-
-        .user-name {
-          color: white;
-          font-weight: 600;
-          font-size: 13px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-
-        .user-role {
-          color: rgba(255, 255, 255, 0.5);
-          font-size: 11px;
-          margin-top: 2px;
-        }
-      }
-    }
-  }
-}
-
-.main-wrapper {
+.owner-layout {
+  height: 100vh;
   background: $bg-secondary;
-  overflow: hidden;
 }
 
-.top-header {
-  height: 64px;
+/* ========== 顶部导航 ========== */
+.top-nav {
+  height: 56px;
   background: white;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   padding: 0 24px;
   border-bottom: 1px solid $border-color;
   box-shadow: $shadow-sm;
+  position: relative;
+  z-index: 100;
+  flex-shrink: 0;
+}
 
-  .page-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: $text-primary;
-  }
+.nav-left {
+  flex-shrink: 0;
+  margin-right: 32px;
 
-  .header-actions {
+  .brand {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 10px;
 
-    .action-item {
+    .brand-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, $owner-primary, $owner-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .brand-text {
+      font-size: 16px;
+      font-weight: 700;
+      color: $text-primary;
+      white-space: nowrap;
+      letter-spacing: -0.02em;
+    }
+  }
+}
+
+.nav-center {
+  flex: 1;
+  overflow: hidden;
+
+  .nav-menu {
+    background: transparent !important;
+    border-bottom: none !important;
+    height: 56px;
+
+    :deep(.el-menu-item),
+    :deep(.el-sub-menu__title) {
+      height: 56px !important;
+      line-height: 56px !important;
+      border-bottom: 2px solid transparent !important;
+      font-size: 13.5px;
+      font-weight: 500;
       color: $text-secondary;
-      cursor: pointer;
-      transition: color 0.2s;
-      padding: 6px;
-      border-radius: 8px;
+      transition: color 0.2s ease, background-color 0.2s ease;
+      padding: 0 16px;
+      margin: 0 !important;
+      border-radius: 0 !important;
+
+      .el-icon {
+        font-size: 16px;
+        margin-right: 4px;
+      }
 
       &:hover {
-        color: $primary;
-        background: $primary-50;
+        color: $owner-primary;
+        background: $owner-50 !important;
       }
     }
 
-    .user-dropdown {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      padding: 4px 8px;
-      border-radius: 8px;
-      transition: background 0.2s;
+    :deep(.el-menu-item.is-active) {
+      color: $owner-primary !important;
+      border-bottom-color: $owner-primary !important;
+      font-weight: 600;
+    }
 
-      &:hover {
-        background: $gray-100;
-      }
+    :deep(.el-sub-menu.is-active .el-sub-menu__title) {
+      color: $owner-primary !important;
+      border-bottom-color: $owner-primary !important;
+      font-weight: 600;
+    }
 
-      .header-avatar {
-        background: linear-gradient(135deg, #14b8a6, #0d9488);
-        color: white;
-      }
+    /* 下拉菜单 */
+    :deep(.el-sub-menu .el-menu) {
+      min-width: 150px;
+      border-radius: 10px;
+      padding: 6px;
+      box-shadow: $shadow-lg;
+      border: 1px solid $border-color-light;
 
-      .header-username {
-        font-weight: 500;
-        color: $text-primary;
+      .el-menu-item {
+        height: 40px !important;
+        line-height: 40px !important;
+        border-radius: 8px;
+        margin: 2px 0;
         font-size: 13px;
+        font-weight: 500;
+        color: $text-secondary;
+        border-bottom: none !important;
+        padding: 0 12px;
+
+        .el-icon {
+          font-size: 15px;
+          margin-right: 6px;
+          color: $text-tertiary;
+        }
+
+        &:hover {
+          background: $owner-50 !important;
+          color: $owner-primary;
+
+          .el-icon { color: $owner-primary; }
+        }
+
+        &.is-active {
+          background: $owner-50 !important;
+          color: $owner-primary !important;
+          font-weight: 600;
+
+          .el-icon { color: $owner-primary; }
+        }
       }
     }
   }
 }
 
+.nav-right {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 24px;
+
+  .nav-action {
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    color: $text-secondary;
+    transition: all 0.2s;
+
+    &:hover {
+      color: $owner-primary;
+      background: $owner-50;
+    }
+  }
+
+  .user-trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 4px 10px;
+    border-radius: 10px;
+    transition: background 0.2s;
+
+    &:hover { background: $gray-100; }
+
+    .nav-avatar {
+      background: linear-gradient(135deg, $owner-primary, $owner-light);
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .nav-username {
+      font-size: 13px;
+      font-weight: 500;
+      color: $text-primary;
+    }
+
+    .arrow-icon {
+      font-size: 10px;
+      color: $text-tertiary;
+    }
+  }
+}
+
+/* ========== 页面标题栏 ========== */
+.page-bar {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 28px;
+  background: white;
+  border-bottom: 1px solid $border-color-light;
+  flex-shrink: 0;
+
+  .page-group {
+    font-size: 13px;
+    font-weight: 500;
+    color: $text-tertiary;
+  }
+
+  .page-sep {
+    font-size: 12px;
+    color: $text-tertiary;
+    user-select: none;
+  }
+
+  .page-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: $text-primary;
+    margin: 0;
+  }
+}
+
+/* ========== 主内容 ========== */
 .main-content {
+  flex: 1;
   padding: 24px;
   overflow-y: auto;
 }
 
+/* ========== 过渡 ========== */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.2s ease;
@@ -318,5 +398,13 @@ const handleCommand = (cmd) => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+/* ========== 响应式 ========== */
+@media (prefers-reduced-motion: reduce) {
+  .fade-enter-active,
+  .fade-leave-active {
+    transition: none;
+  }
 }
 </style>

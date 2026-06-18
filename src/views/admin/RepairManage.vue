@@ -13,7 +13,7 @@
     </template>
 
     <el-table :data="list" v-loading="loading" stripe border>
-      <el-table-column prop="id" label="工单号" width="80" align="center" />
+      <el-table-column prop="repairNo" label="报修单号" width="170" align="center" />
       <el-table-column label="业主" width="120">
         <template #default="{row}">
           {{ row.ownerName || '未知' }}
